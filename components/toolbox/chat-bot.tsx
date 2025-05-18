@@ -21,7 +21,7 @@ export default function ChatBot() {
   ])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const messagesEndRef = useRef(null)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   const quickQuestions = [
     "What services do you offer?",
@@ -79,7 +79,7 @@ export default function ChatBot() {
     )
   }
 
-  const handleQuickQuestion = (question) => {
+  const handleQuickQuestion = (question: string) => {
     const newUserMessage = {
       id: messages.length + 1,
       type: "user",
@@ -105,7 +105,7 @@ export default function ChatBot() {
     )
   }
 
-  const getBotResponse = (message) => {
+  const getBotResponse = (message: string) => {
     const lowerMsg = message.toLowerCase()
 
     if (lowerMsg.includes("hello") || lowerMsg.includes("hi") || lowerMsg.includes("hey")) {
@@ -125,7 +125,7 @@ export default function ChatBot() {
     }
   }
 
-  const formatTime = (date) => {
+  const formatTime = (date: string | number | Date) => {
     return new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   }
 
@@ -152,7 +152,7 @@ export default function ChatBot() {
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">Need help?</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  I'm your AV Assistant. Click here to chat with me!
+                  I&apos;m your AV Assistant. Click here to chat with me!
                 </p>
                 <Button
                   size="sm"
