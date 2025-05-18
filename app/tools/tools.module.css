@@ -1,0 +1,47 @@
+/* Light mode only styling for tools page */
+.light-mode-only {
+  /* Force light mode background colors */
+  --bg-color: #f9fafb; /* light gray background */
+  --card-bg: #ffffff; /* white card backgrounds */
+  --text-primary: #111827; /* dark text for readability */
+  --text-secondary: #4b5563; /* gray text for secondary content */
+  --border-color: #e5e7eb; /* light gray border */
+  
+  /* Override any dark mode classes */
+  color-scheme: light;
+  background-color: var(--bg-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.light-mode-only * {
+  /* This ensures all child elements ignore dark mode theming */
+  --tw-bg-opacity: 1 !important;
+  --tw-text-opacity: 1 !important;
+  --tw-border-opacity: 1 !important;
+}
+
+/* Specific overrides for common elements */
+.light-mode-only [class*="dark:bg-"] {
+  background-color: var(--card-bg) !important;
+}
+
+.light-mode-only [class*="dark:text-"] {
+  color: var(--text-primary) !important;
+}
+
+.light-mode-only [class*="dark:border-"] {
+  border-color: var(--border-color) !important;
+}
+
+/* Card specific styling */
+.light-mode-only .card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Button specific styling to ensure they remain visible */
+.light-mode-only button, 
+.light-mode-only [role="button"] {
+  color: inherit !important;
+  background-color: inherit !important;
+}
