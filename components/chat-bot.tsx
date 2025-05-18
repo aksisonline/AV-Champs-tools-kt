@@ -137,21 +137,21 @@ export default function ChatBot() {
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            className="fixed bottom-24 right-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg max-w-xs z-50"
+            className="fixed bottom-24 right-6 bg-white p-4 rounded-xl shadow-lg max-w-xs z-50"
           >
             <button
               onClick={() => setShowTooltip(false)}
-              className="absolute -top-2 -right-2 bg-gray-100 dark:bg-gray-700 rounded-full p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              className="absolute -top-2 -right-2 bg-gray-100 rounded-full p-1 text-gray-500 hover:text-gray-700"
             >
               <X className="h-3 w-3" />
             </button>
             <div className="flex items-start space-x-3">
-              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full text-blue-600 dark:text-blue-400">
+              <div className="bg-blue-100 p-2 rounded-full text-blue-600">
                 <Sparkles className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Need help?</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-sm font-medium text-gray-900">Need help?</p>
+                <p className="text-xs text-gray-500 mt-1">
                   I&apos;m your AV Assistant. Click here to chat with me!
                 </p>
                 <Button
@@ -196,7 +196,7 @@ export default function ChatBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-6 right-6 w-full sm:w-96 max-w-[calc(100vw-48px)] bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden z-50 border border-gray-200 dark:border-gray-700 flex flex-col"
+            className="fixed bottom-6 right-6 w-full sm:w-96 max-w-[calc(100vw-48px)] bg-white rounded-2xl shadow-xl overflow-hidden z-50 border border-gray-200 flex flex-col"
             style={{ maxHeight: "calc(100vh - 80px)" }}
           >
             {/* Chat Header */}
@@ -227,7 +227,7 @@ export default function ChatBot() {
             </div>
 
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900/50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.map((message) => (
                 <div key={message.id} className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}>
                   <div className="flex items-end space-x-2 max-w-[80%]">
@@ -241,10 +241,10 @@ export default function ChatBot() {
                       className={`p-3 rounded-2xl ${
                         message.type === "user"
                           ? "bg-avblue-600 text-white"
-                          : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                          : "bg-white border border-gray-200"
                       }`}
                     >
-                      <p className={message.type === "user" ? "text-white" : "text-gray-800 dark:text-gray-200"}>
+                      <p className={message.type === "user" ? "text-white" : "text-gray-800"}>
                         {message.content}
                       </p>
                       <p
@@ -266,7 +266,7 @@ export default function ChatBot() {
                       <AvatarImage src="/bot-avatar-fixed.png" alt="AV Assistant" />
                       <AvatarFallback className="bg-blue-600">AV</AvatarFallback>
                     </Avatar>
-                    <div className="p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                    <div className="p-3 rounded-2xl bg-white border border-gray-200">
                       <div className="flex space-x-1">
                         <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div
@@ -287,14 +287,14 @@ export default function ChatBot() {
 
             {/* Quick Questions */}
             {messages.length < 3 && (
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Suggested questions:</p>
+              <div className="p-4 border-t border-gray-200 bg-white">
+                <p className="text-xs text-gray-500 mb-2">Suggested questions:</p>
                 <div className="grid grid-cols-1 gap-2">
                   {quickQuestions.map((question, index) => (
                     <button
                       key={index}
                       onClick={() => handleQuickQuestion(question)}
-                      className="text-left text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 flex justify-between items-center transition-colors"
+                      className="text-left text-sm px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 flex justify-between items-center transition-colors"
                     >
                       <span>{question}</span>
                       <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -305,14 +305,14 @@ export default function ChatBot() {
             )}
 
             {/* Chat Input */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <div className="p-4 border-t border-gray-200 bg-white">
               <div className="flex space-x-2">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder="Type your message..."
-                  className="flex-1 rounded-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-blue-500 focus:border-blue-500 dark:text-white"
+                  className="flex-1 rounded-full border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <Button
                   onClick={handleSendMessage}
@@ -323,7 +323,7 @@ export default function ChatBot() {
                   {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </Button>
               </div>
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-xs text-center text-gray-500 mt-2">
                 Powered by AV Champs AI Assistant
               </p>
             </div>

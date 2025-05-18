@@ -1,11 +1,12 @@
-import type { Config } from "tailwindcss";
+import type { Config } from "tailwindcss"
 
 const config: Config = {
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     container: {
@@ -51,17 +52,17 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
         avblue: {
-          50: "#eef7ff",
-          100: "#d9eeff",
-          200: "#bae0ff",
-          300: "#8acbff",
-          400: "#54afff",
-          500: "#2f8fff",
-          600: "#1a71f0",
-          700: "#1058dc",
-          800: "#1346b3",
-          900: "#153c8c",
-          950: "#0f265a",
+          DEFAULT: "#2563eb",
+          50: "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
         },
       },
       borderRadius: {
@@ -70,12 +71,26 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)"],
-        mono: ["var(--font-geist-mono)"],
+        sans: ["var(--font-sans)"],
+      },
+      boxShadow: {
+        soft: "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
+        glow: "0 0 15px rgba(37, 99, 235, 0.5)",
+        "inner-soft": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)",
+      },
+      animation: {
+        "bounce-slow": "bounce 3s infinite",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "spin-slow": "spin 8s linear infinite",
+      },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        "gradient-diagonal": "linear-gradient(to right bottom, var(--tw-gradient-stops))",
       },
     },
   },
   plugins: [],
-};
+}
 
-export default config;
+export default config

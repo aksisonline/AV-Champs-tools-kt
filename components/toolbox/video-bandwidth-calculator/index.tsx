@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Input } from '../../ui/input';
-import { Button } from '../../ui/button';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const VideoBandwidthCalculator = () => {
-  const [resolution, setResolution] = useState('1080p');
+  const [resolution, setResolution] = useState<'720p' | '1080p' | '4K'>('1080p');
   const [frameRate, setFrameRate] = useState(30);
   const [bitDepth, setBitDepth] = useState(8);
-  const [bandwidth, setBandwidth] = useState(null);
+  const [bandwidth, setBandwidth] = useState<string | null>(null);
 
   const calculateBandwidth = () => {
     const resolutionMap = {
@@ -27,7 +27,7 @@ const VideoBandwidthCalculator = () => {
         <label className="block mb-2">Resolution</label>
         <select
           value={resolution}
-          onChange={(e) => setResolution(e.target.value)}
+          onChange={(e) => setResolution(e.target.value as '720p' | '1080p' | '4K')}
           className="w-full p-2 border rounded"
         >
           <option value="720p">720p</option>

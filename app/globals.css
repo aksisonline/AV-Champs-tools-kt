@@ -64,3 +64,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Force light mode for .force-light subtree, even if .dark is present on html */
+.force-light, .force-light * {
+  --tw-bg-opacity: 1 !important;
+  --tw-text-opacity: 1 !important;
+  color-scheme: light !important;
+}
+.force-light {
+  /* Remove dark class for children */
+  color-scheme: light !important;
+}
+.force-light [class*="dark:"] {
+  /* Remove dark: styles for all children */
+  all: unset;
+  color-scheme: light !important;
+}
