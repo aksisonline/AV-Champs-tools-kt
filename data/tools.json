@@ -4,7 +4,7 @@
       "id": "aspect-ratio",
       "name": "Aspect Ratio Calculator",
       "description": "Calculate and convert aspect ratios for video and images",
-      "iconName": "aspect-ratio",
+      "iconName": "crop",
       "iconColor": "#6366f1",
       "category": "video",
       "tags": ["video", "calculator", "aspect-ratio", "dimensions"],
@@ -12,13 +12,15 @@
       "version": "1.0.0",
       "lastUpdated": "2024-03-20",
       "author": "AV Champs",
-      "documentation": "/docs/tools/aspect-ratio"
+      "documentation": "/docs/tools/aspect-ratio",
+      "isPremium": false,
+      "pointsRequired": 0
     },
     {
       "id": "video-bandwidth-calculator",
       "name": "Video Bandwidth Calculator",
       "description": "Calculate bandwidth requirements for video streaming and storage",
-      "iconName": "network",
+      "iconName": "globe",
       "iconColor": "#8b5cf6",
       "category": "video",
       "tags": ["video", "calculator", "bandwidth", "streaming", "storage"],
@@ -26,7 +28,9 @@
       "version": "1.0.0",
       "lastUpdated": "2025-05-18",
       "author": "AV Champs",
-      "documentation": "/docs/tools/video-bandwidth-calculator"
+      "documentation": "/docs/tools/video-bandwidth-calculator",
+      "isPremium": false,
+      "pointsRequired": 0
     },
     {
       "id": "btu-calculator",
@@ -40,7 +44,9 @@
       "version": "1.0.0",
       "lastUpdated": "2024-03-20",
       "author": "AV Champs",
-      "documentation": "/docs/tools/btu-calculator"
+      "documentation": "/docs/tools/btu-calculator",
+      "isPremium": false,
+      "pointsRequired": 100
     },
     {
       "id": "placeholder-tool",
@@ -54,7 +60,55 @@
       "version": "0.0.1",
       "lastUpdated": "2024-03-20",
       "author": "AV Champs",
-      "documentation": "/docs/tools/placeholder"
+      "documentation": "/docs/tools/placeholder",
+      "isPremium": false,
+      "pointsRequired": 100
+    },
+    {
+      "id": "advanced-room-designer",
+      "name": "Advanced Room Designer",
+      "description": "Professional 3D room design tool with acoustic modeling and equipment placement",
+      "iconName": "layout-dashboard",
+      "iconColor": "#6366f1",
+      "category": "project",
+      "tags": ["design", "3D", "acoustics"],
+      "isNew": true,
+      "version": "1.0.0",
+      "lastUpdated": "2025-05-18",
+      "author": "AV Champs",
+      "documentation": "/docs/tools/advanced-room-designer",
+      "isPremium": true,
+      "pointsRequired": 100
+    },
+    {
+      "id": "signal-analyzer",
+      "name": "Signal Analyzer Pro",
+      "description": "Advanced audio signal analysis with frequency response, phase, and distortion measurements",
+      "iconName": "activity",
+      "iconColor": "#ec4899",
+      "category": "audio",
+      "tags": ["audio", "analysis", "measurement"],
+      "version": "1.0.0",
+      "lastUpdated": "2025-04-12",
+      "author": "AV Champs",
+      "documentation": "/docs/tools/signal-analyzer",
+      "isPremium": true,
+      "pointsRequired": 475
+    },
+    {
+      "id": "network-simulator",
+      "name": "AV Network Simulator",
+      "description": "Simulate AV over IP networks with bandwidth analysis and latency testing",
+      "iconName": "wifi",
+      "iconColor": "#14b8a6",
+      "category": "video",
+      "tags": ["network", "IP", "bandwidth"],
+      "version": "1.0.0",
+      "lastUpdated": "2025-03-01",
+      "author": "AV Champs",
+      "documentation": "/docs/tools/network-simulator",
+      "isPremium": true,
+      "pointsRequired": 150
     }
   ]
-} 
+}

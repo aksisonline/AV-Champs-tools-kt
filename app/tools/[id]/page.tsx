@@ -11,6 +11,7 @@ import DynamicIcon from "@/components/dynamic-icon"
 import type { ToolMetadata } from "@/lib/tools"
 import { getToolComponent, toolExists } from "@/components/toolbox/registry"
 
+
 export default function ToolPage() {
   const params = useParams()
   const router = useRouter()
@@ -128,7 +129,7 @@ export default function ToolPage() {
 
           <div className="flex items-start gap-4">
             <div className="p-3 rounded-lg bg-gray-100">
-              <DynamicIcon />
+              <DynamicIcon iconName={tool.iconName} iconColor={tool.iconColor} />
             </div>
 
             <div>

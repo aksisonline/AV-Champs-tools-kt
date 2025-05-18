@@ -16,6 +16,9 @@ export type ToolMetadata = {
   lastUpdated?: string
   author?: string
   documentation?: string
+  isPremium?: boolean
+  pointsRequired?: number
+  progress?: number
 }
 
 // Get tools from JSON file

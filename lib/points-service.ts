@@ -125,7 +125,47 @@ export async function updateUserPoints(
       return false
     }
 
-    // 3. Create a new transaction with server timestamp
+    // 3. If this is a tool purchase, verify it with the API
+    if (type === "spend" && metadata?.toolId) {
+      try {
+        const response = await fetch('/api/tools/purchase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: MOCK_USER_ID,
+            toolId: metadata.toolId,
+            pointsSpent: amount,
+          }),
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok || !result.success) {
+          console.error('Tool purchase verification failed:', result.error);
+          toast({
+            title: "Purchase Failed",
+            description: result.error || "Failed to verify tool purchase.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        
+        // If we got here, the purchase was verified successfully
+        console.log('Tool purchase verified:', result.transaction);
+      } catch (error) {
+        console.error('Error verifying tool purchase:', error);
+        toast({
+          title: "Purchase Failed",
+          description: "Error communicating with the server. Please try again.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
+    // 4. Create a new transaction with server timestamp
     const timestamp = new Date().toISOString()
     const transactionData = {
       userId: MOCK_USER_ID,
@@ -137,20 +177,20 @@ export async function updateUserPoints(
       status: "completed" as const,
     }
 
-    // 4. Generate a verification token (would be done server-side in production)
+    // 5. Generate a verification token (would be done server-side in production)
     const verificationToken = generateVerificationToken(transactionData)
 
-    // 5. Create the complete transaction record
+    // 6. Create the complete transaction record
     const transaction: PointsTransaction = {
       id: `txn-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       ...transactionData,
       verificationToken,
     }
 
-    // 6. Update the user's points
+    // 7. Update the user's points
     const newTotal = type === "earn" ? currentData.total + amount : currentData.total - amount
 
-    // 7. Save the updated data
+    // 8. Save the updated data
     const newData: UserPoints = {
       total: newTotal,
       transactions: [transaction, ...currentData.transactions].slice(0, 50), // Keep last 50 transactions
@@ -159,7 +199,7 @@ export async function updateUserPoints(
 
     localStorage.setItem("userData", JSON.stringify(newData))
 
-    // 8. Return success
+    // 9. Return success
     return true
   } catch (error) {
     console.error("Error updating user points:", error)

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import "./tools.module.css" // Import the light mode CSS
 import {
   Search,
   Filter,
@@ -36,7 +35,6 @@ import dynamic from "next/dynamic"
 import { useMobile } from "@/hooks/use-mobile"
 import { getUserPoints, updateUserPoints } from "@/lib/points-service"
 import { toast } from "@/hooks/use-toast"
-
 // Dynamically import icons to avoid bundling all icons
 const LucideIcon = dynamic(() => import("@/components/dynamic-icon"), {
   loading: () => <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />,
@@ -55,49 +53,13 @@ const categories = [
   { id: "integrations", name: "Integrations", icon: <ExternalLink className="h-4 w-4" /> },
 ]
 
-// Locked tools data
-const lockedTools: (ToolMetadata & { pointsRequired: number; progress?: number })[] = [
-  {
-    id: "advanced-room-designer",
-    name: "Advanced Room Designer",
-    description: "Professional 3D room design tool with acoustic modeling and equipment placement",
-    iconName: "layout-dashboard",
-    iconColor: "#6366f1",
-    category: "project",
-    tags: ["design", "3D", "acoustics"],
-    isNew: true,
-    pointsRequired: 100,
-    progress: 65,
-  },
-  {
-    id: "signal-analyzer",
-    name: "Signal Analyzer Pro",
-    description: "Advanced audio signal analysis with frequency response, phase, and distortion measurements",
-    iconName: "activity",
-    iconColor: "#ec4899",
-    category: "audio",
-    tags: ["audio", "analysis", "measurement"],
-    pointsRequired: 75,
-    progress: 40,
-  },
-  {
-    id: "network-simulator",
-    name: "AV Network Simulator",
-    description: "Simulate AV over IP networks with bandwidth analysis and latency testing",
-    iconName: "network",
-    iconColor: "#14b8a6",
-    category: "video",
-    tags: ["network", "IP", "bandwidth"],
-    pointsRequired: 150,
-  },
-]
-
 export default function ToolsPage() {
   const router = useRouter()
   const isMobile = useMobile()
   const [searchQuery, setSearchQuery] = useState("")
   const [tools, setTools] = useState<ToolMetadata[]>([])
   const [filteredTools, setFilteredTools] = useState<ToolMetadata[]>([])
+  const [premiumTools, setPremiumTools] = useState<ToolMetadata[]>([])
   const [activeCategory, setActiveCategory] = useState("all")
   const [favorites, setFavorites] = useState<string[]>([])
   const [recentlyUsed, setRecentlyUsed] = useState<string[]>([])
@@ -146,14 +108,23 @@ export default function ToolsPage() {
           setRecentlyUsed(JSON.parse(savedRecent))
         }
 
-        // Fetch tools
-        const response = await fetch("/api/tools")
-        if (!response.ok) {
-          throw new Error("Failed to fetch tools")
+        // Fetch regular tools (non-premium)
+        const regularToolsResponse = await fetch("/api/tools?premium=false")
+        if (!regularToolsResponse.ok) {
+          throw new Error("Failed to fetch regular tools")
         }
-        const data = await response.json()
-        setTools(data)
-        setFilteredTools(data)
+        const regularTools = await regularToolsResponse.json()
+        
+        // Fetch premium tools
+        const premiumResponse = await fetch("/api/tools?premium=true")
+        if (!premiumResponse.ok) {
+          throw new Error("Failed to fetch premium tools")
+        }
+        const premiumData = await premiumResponse.json()
+        
+        // Store the raw tools data
+        setRawTools(regularTools);
+        setRawPremiumTools(premiumData);
       } catch (error) {
         console.error("Error fetching tools:", error)
         toast({
@@ -167,11 +138,70 @@ export default function ToolsPage() {
     }
 
     fetchTools()
-  }, [])
+  }, []) // Remove the dependency on unlockedTools to prevent infinite loop
+
+  // Store raw tools data separately to avoid infinite loops
+  const [rawTools, setRawTools] = useState<ToolMetadata[]>([]);
+  const [rawPremiumTools, setRawPremiumTools] = useState<ToolMetadata[]>([]);
+
+  // Process tools based on unlocked status and points
+  useEffect(() => {
+    if (!isLoading && rawTools.length > 0 && rawPremiumTools.length > 0) {
+      // Get current points
+      const points = userPoints;
+      
+      // Process premium tools
+      const premiumToolsWithProgress = rawPremiumTools.map((tool: ToolMetadata) => {
+        // Premium tools must always be purchased, no progress calculation
+        return {
+          ...tool,
+          progress: undefined // Explicitly set to undefined
+        };
+      });
+
+      // Process regular tools
+      const regularToolsWithAccess = rawTools.map((tool: ToolMetadata) => {
+        // Non-premium tools with pointsRequired: 0 are directly accessible
+        if (tool.pointsRequired === 0) {
+          return {
+            ...tool,
+            progress: 100 // Fully accessible
+          };
+        }
+
+        // Non-premium tools with pointsRequired > 0 are locked unless unlocked
+        if ((tool.pointsRequired || 0) > 0 && !unlockedTools.includes(tool.id)) {
+          const pointsRequired = tool.pointsRequired || 100;
+          const progress = Math.min(Math.floor((points / pointsRequired) * 100), 100);
+
+          return {
+            ...tool,
+            progress
+          };
+        }
+
+        // If unlocked, treat as fully accessible
+        return {
+          ...tool,
+          progress: 100
+        };
+      });
+
+      // Update state with processed tools
+      setPremiumTools(premiumToolsWithProgress);
+      setTools(regularToolsWithAccess);
+    }
+  }, [isLoading, rawTools, rawPremiumTools, userPoints, unlockedTools]);
 
   // Filter tools based on search query and active category
   useEffect(() => {
-    let filtered = tools
+    // Only show tools that are either:
+    // 1. Fully accessible (pointsRequired=0)
+    // 2. Already unlocked 
+    // Don't include locked tools in the main filtered list
+    let filtered = tools.filter(tool => 
+      tool.pointsRequired === 0 || unlockedTools.includes(tool.id)
+    );
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
@@ -188,7 +218,7 @@ export default function ToolsPage() {
     }
 
     setFilteredTools(filtered)
-  }, [searchQuery, activeCategory, tools])
+  }, [searchQuery, activeCategory, tools, unlockedTools])
 
   // Toggle favorite status
   const toggleFavorite = (id: string) => {
@@ -217,14 +247,19 @@ export default function ToolsPage() {
       const success = await updateUserPoints(pointsRequired, "spend", `Unlocked premium tool: ${id}`, { toolId: id })
 
       if (success) {
-        // Update unlocked tools list
+        // Update unlocked tools list in local storage
         const newUnlocked = [...unlockedTools, id]
-        setUnlockedTools(newUnlocked)
         localStorage.setItem("unlockedTools", JSON.stringify(newUnlocked))
 
         // Refresh user points
         const updatedPoints = await getUserPoints()
+        
+        // Update state only once to avoid multiple renders
         setUserPoints(updatedPoints)
+        setUnlockedTools(newUnlocked)
+
+        // We don't need to update rawTools or rawPremiumTools since those don't change
+        // The useEffect that depends on unlockedTools will handle updating the processed tools
 
         toast({
           title: "Tool Unlocked!",
@@ -251,12 +286,42 @@ export default function ToolsPage() {
 
   // Get favorite tools
   const getFavoriteTools = () => {
-    return tools.filter((tool) => favorites.includes(tool.id))
+    // Get favorites from both regular and premium tools
+    const regularFavorites = tools.filter((tool) => favorites.includes(tool.id));
+    const premiumFavorites = premiumTools
+      .filter((tool) => favorites.includes(tool.id) && unlockedTools.includes(tool.id));
+    
+    return [...regularFavorites, ...premiumFavorites];
   }
 
   // Get recently used tools
   const getRecentTools = () => {
-    return recentlyUsed.map((id) => tools.find((tool) => tool.id === id)).filter(Boolean) as ToolMetadata[]
+    return recentlyUsed
+      .map((id) => {
+        // Check in both regular and premium tools
+        const regularTool = tools.find((tool) => tool.id === id);
+        const premiumTool = premiumTools.find(
+          (tool) => tool.id === id && unlockedTools.includes(tool.id)
+        );
+        return regularTool || premiumTool;
+      })
+      .filter(Boolean) as ToolMetadata[];
+  }
+
+  // Get all locked tools (premium and non-premium with pointsRequired > 0)
+  const getLockedTools = () => {
+    // Premium tools that are not unlocked
+    const lockedPremiumTools = premiumTools.filter(tool => !unlockedTools.includes(tool.id));
+    
+    // Non-premium tools with pointsRequired > 0 that are not unlocked
+    // This uses rawTools to get all non-premium tools, not just the filtered ones
+    const lockedNonPremiumTools = rawTools.filter(tool => 
+      !tool.isPremium && 
+      (tool.pointsRequired || 0) > 0 && 
+      !unlockedTools.includes(tool.id)
+    );
+    
+    return [...lockedPremiumTools, ...lockedNonPremiumTools];
   }
 
   return (
@@ -360,7 +425,7 @@ export default function ToolsPage() {
               value="locked"
               className="rounded-md data-[state=active]:bg-avblue-50 data-[state=active]:text-avblue-600 dark:data-[state=active]:bg-avblue-900/30 dark:data-[state=active]:text-avblue-400"
             >
-              Locked ({lockedTools.length - unlockedTools.length})
+              Locked ({getLockedTools().length})
             </TabsTrigger>
           </TabsList>
 
@@ -422,7 +487,7 @@ export default function ToolsPage() {
                   <Zap className="h-5 w-5 text-blue-600 dark:text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">Premium Tools</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-white">Locked Tools</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     Unlock advanced tools by earning points through completing projects, participating in training, and
                     contributing to the community.
@@ -432,17 +497,15 @@ export default function ToolsPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {lockedTools
-                .filter((tool) => !unlockedTools.includes(tool.id))
-                .map((tool) => (
-                  <LockedToolCard
-                    key={tool.id}
-                    tool={tool}
-                    userPoints={userPoints}
-                    onUnlock={unlockTool}
-                    isUnlocking={isUnlocking}
-                  />
-                ))}
+              {getLockedTools().map((tool) => (
+                <LockedToolCard
+                  key={tool.id}
+                  tool={tool}
+                  userPoints={userPoints}
+                  onUnlock={unlockTool}
+                  isUnlocking={isUnlocking}
+                />
+              ))}
             </div>
           </TabsContent>
 
@@ -489,7 +552,7 @@ export default function ToolsPage() {
                     ))}
 
                     {/* Show unlocked premium tools in the All tab */}
-                    {lockedTools
+                    {premiumTools
                       .filter((tool) => unlockedTools.includes(tool.id))
                       .filter((tool) => activeCategory === "all" || tool.category === activeCategory)
                       .filter(
@@ -521,8 +584,7 @@ export default function ToolsPage() {
                 )}
 
                 {/* Locked Tools Section */}
-                {lockedTools
-                  .filter((tool) => !unlockedTools.includes(tool.id))
+                {getLockedTools()
                   .filter((tool) => activeCategory === "all" || tool.category === activeCategory)
                   .filter(
                     (tool) =>
@@ -542,8 +604,7 @@ export default function ToolsPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {lockedTools
-                        .filter((tool) => !unlockedTools.includes(tool.id))
+                      {getLockedTools()
                         .filter((tool) => activeCategory === "all" || tool.category === activeCategory)
                         .filter(
                           (tool) =>
@@ -592,13 +653,13 @@ function ToolCard({
       <Card
         className={`overflow-hidden h-full bg-white hover:shadow-md transition-shadow ${isPremium ? "border-2 border-yellow-400" : ""}`}
       >
-        <CardContent className="p-0">
-          <div className="p-6">
+        <CardContent className="p-0 flex flex-col h-full">
+          <div className="p-6 flex-1">
             <div className="flex justify-between items-start mb-4">
               <div
                 className={`p-2 rounded-lg ${isPremium ? "bg-yellow-100" : "bg-gray-100"}`}
               >
-                <LucideIcon />
+                <LucideIcon iconName={tool.iconName} iconColor={tool.iconColor} />
               </div>
               <div className="flex items-center gap-2">
                 {isPremium && <Badge className="bg-yellow-500 text-white">Premium</Badge>}
@@ -638,8 +699,12 @@ function ToolCard({
 
           <div className="mt-auto border-t border-gray-100">
             <Button
-              variant="ghost"
-              className={`w-full rounded-none py-4 h-auto ${isPremium ? "text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20" : "text-avblue-600 dark:text-avblue-400 hover:bg-avblue-50 dark:hover:bg-avblue-900/20"}`}
+              variant={isPremium ? "ghost" : "ghost"}
+              className={`w-full rounded-none h-14 flex items-center justify-center ${
+                isPremium 
+                  ? "text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20" 
+                  : "text-avblue-600 dark:text-avblue-400 hover:bg-avblue-100 dark:hover:bg-avblue-900/30"
+              }`}
               onClick={() => onToolClick(tool.id)}
             >
               Open Tool
@@ -658,12 +723,14 @@ function LockedToolCard({
   onUnlock,
   isUnlocking,
 }: {
-  tool: ToolMetadata & { pointsRequired: number; progress?: number }
+  tool: ToolMetadata
   userPoints: number
   onUnlock: (id: string, pointsRequired: number) => void
   isUnlocking: boolean
 }) {
-  const canUnlock = userPoints >= tool.pointsRequired
+  const pointsRequired = tool.pointsRequired || 0;
+  const progress = typeof tool.progress === 'number' ? tool.progress : undefined;
+  const canUnlock = userPoints >= pointsRequired;
 
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
@@ -677,21 +744,21 @@ function LockedToolCard({
             <h4 className="font-medium text-gray-900 mb-1">Required Points</h4>
             <div className="flex items-center justify-center gap-1 mb-3">
               <Sparkles className="h-4 w-4 text-yellow-500" />
-              <span className="text-xl font-bold text-yellow-600">{tool.pointsRequired}</span>
+              <span className="text-xl font-bold text-yellow-600">{pointsRequired}</span>
             </div>
 
-            {tool.progress && (
+            {progress !== undefined && (
               <div className="mb-3 w-full max-w-[200px] mx-auto">
                 <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                   <span>Progress</span>
-                  <span>{tool.progress}%</span>
+                  <span>{progress}%</span>
                 </div>
-                <Progress value={tool.progress} className="h-2" />
+                <Progress value={progress} className="h-2" />
               </div>
             )}
 
             <Button
-              onClick={() => onUnlock(tool.id, tool.pointsRequired)}
+              onClick={() => onUnlock(tool.id, pointsRequired)}
               disabled={!canUnlock || isUnlocking}
               className={canUnlock ? "bg-yellow-500 hover:bg-yellow-600 text-white" : ""}
             >
@@ -708,7 +775,7 @@ function LockedToolCard({
               ) : (
                 <>
                   <Lock className="h-4 w-4 mr-2" />
-                  {userPoints > 0 ? `Need ${tool.pointsRequired - userPoints} more points` : "Earn Points to Unlock"}
+                  {userPoints > 0 ? `Need ${pointsRequired - userPoints} more points` : "Earn Points to Unlock"}
                 </>
               )}
             </Button>
@@ -716,11 +783,11 @@ function LockedToolCard({
         </div>
 
         {/* Tool Card (Blurred Background) */}
-        <CardContent className="p-0 opacity-70">
-          <div className="p-6">
+        <CardContent className="p-0 opacity-70 flex flex-col h-full">
+          <div className="p-6 flex-1">
             <div className="flex justify-between items-start mb-4">
               <div className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
-                <LucideIcon />
+                <LucideIcon iconName={tool.iconName} iconColor={tool.iconColor} />
               </div>
               <div>
                 <Badge className="bg-yellow-500/50 text-white">Premium</Badge>
@@ -741,7 +808,7 @@ function LockedToolCard({
           </div>
 
           <div className="mt-auto border-t border-gray-200 dark:border-gray-700">
-            <div className="w-full py-4 h-auto text-center text-gray-400">Locked</div>
+            <div className="w-full h-14 flex items-center justify-center text-gray-400">Locked</div>
           </div>
         </CardContent>
       </Card>
@@ -753,8 +820,8 @@ function LockedToolCard({
 function ToolCardSkeleton() {
   return (
     <Card className="overflow-hidden h-full bg-white dark:bg-gray-800">
-      <CardContent className="p-0">
-        <div className="p-6">
+      <CardContent className="p-0 flex flex-col h-full">
+        <div className="p-6 flex-1">
           <div className="flex justify-between items-start mb-4">
             <Skeleton className="h-10 w-10 rounded-lg" />
             <Skeleton className="h-5 w-5 rounded-full" />
@@ -772,7 +839,7 @@ function ToolCardSkeleton() {
         </div>
 
         <div className="mt-auto border-t border-gray-100 dark:border-gray-700">
-          <Skeleton className="h-12 w-full rounded-none" />
+          <Skeleton className="h-14 w-full rounded-none" />
         </div>
       </CardContent>
     </Card>
